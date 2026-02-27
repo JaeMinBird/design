@@ -6,8 +6,13 @@ import { formatHarmonyOptionsForPrompt } from '@/lib/colors';
 /**
  * POST /api/generate
  *
- * Receives the full WizardState from the wizard, constructs a detailed prompt,
- * and returns a structured DesignSystemOutput JSON from Gemini.
+ * Two-phase generation:
+ *   Phase 1: Gemini reasons about and decides the complete color palette
+ *   Phase 2: The decided colors are fed into a second call that generates
+ *            the full design system with typography, spacing, voice, etc.
+ *
+ * This ensures color decisions are thoughtful and context-specific rather
+ * than the LLM defaulting to the same generic semantic colors every time.
  */
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -21,37 +26,104 @@ export async function POST(request: NextRequest) {
 
     const densityLabel =
       wizardData.designDensity < 33
-        ? 'minimal and airy — generous whitespace, few elements, breathing room'
+        ? 'minimal and airy'
         : wizardData.designDensity < 66
-          ? 'balanced — moderate density, well-structured layouts'
-          : 'rich and detailed — dense information, many visual elements, layered';
+          ? 'balanced'
+          : 'rich and detailed';
 
-    // Build color guidance: if the user picked a primary, generate harmonious options
+    // ──────────────────────────────────────────────────────────────
+    // PHASE 1: Color Palette Reasoning
+    // ──────────────────────────────────────────────────────────────
+
     const colorGuidance = wizardData.primaryColor
-      ? `PRIMARY COLOR (user-chosen): ${wizardData.primaryColor}
+      ? `The user has chosen this primary color: ${wizardData.primaryColor}
+You MUST keep this exact primary color. Use these pre-generated harmonious options as starting points:
 
 ${formatHarmonyOptionsForPrompt(wizardData.primaryColor)}`
-      : 'PRIMARY COLOR: Choose one that fits the brand perfectly.';
+      : 'Choose a primary color that perfectly embodies the brand.';
 
-    const prompt = `You are an expert brand designer and design systems architect. Generate a comprehensive design system for a company with these specifications:
+    const colorPrompt = `You are an expert color theorist and brand designer. Your job is to reason about and decide a complete color palette for a brand.
+
+BRAND: "${wizardData.companyName}"
+INDUSTRY: ${wizardData.industry}
+PERSONALITY: ${wizardData.adjectives.join(', ')}
+TARGET AUDIENCE: ${wizardData.targetAudience}
+COLOR MOOD: ${wizardData.colorMood}
+DESIGN DENSITY: ${densityLabel}
+
+${colorGuidance}
+
+Think carefully about:
+1. What emotions should the primary color evoke for this specific brand?
+2. Which harmony type (complementary, analogous, triadic, split-complementary) best fits this brand's personality?
+3. What saturation and lightness levels match the brand's energy?
+4. Semantic colors (success/warning/error/info) should MATCH the overall palette's energy — if the brand is muted, semantics should be muted. If bold, semantics should be bold. Each semantic color must be UNIQUE and specifically chosen for this brand. Do NOT use generic defaults.
+5. Neutrals should transition smoothly from near-white to near-black, with undertones that complement the primary.
+
+Return ONLY a JSON object with this exact structure:
+{
+  "reasoning": "2-3 sentences explaining your color strategy",
+  "primary": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
+  "secondary": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
+  "accent": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
+  "neutrals": [
+    { "name": "Near White", "hex": "#XXXXXX", "usage": "Backgrounds" },
+    { "name": "Light Gray", "hex": "#XXXXXX", "usage": "Borders, dividers" },
+    { "name": "Mid Gray", "hex": "#XXXXXX", "usage": "Placeholder text" },
+    { "name": "Dark Gray", "hex": "#XXXXXX", "usage": "Secondary text" },
+    { "name": "Near Black", "hex": "#XXXXXX", "usage": "Headings, primary text" }
+  ],
+  "semantic": {
+    "success": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
+    "warning": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
+    "error": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
+    "info": { "name": "string", "hex": "#XXXXXX", "usage": "string" }
+  }
+}`;
+
+    const colorResponse = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: colorPrompt,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const colorText = colorResponse.text ?? '';
+    let colorPalette;
+    try {
+      colorPalette = JSON.parse(colorText);
+    } catch {
+      const cleaned = colorText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      colorPalette = JSON.parse(cleaned);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // PHASE 2: Full Design System (with decided colors)
+    // ──────────────────────────────────────────────────────────────
+
+    const decidedColors = JSON.stringify(colorPalette, null, 2);
+
+    const systemPrompt = `You are an expert brand designer and design systems architect. Generate a comprehensive design system for a company. The color palette has already been decided by our color specialist — use it exactly as provided.
 
 COMPANY: "${wizardData.companyName}"
 INDUSTRY: ${wizardData.industry}
 BRAND ADJECTIVES: ${wizardData.adjectives.join(', ')}
 TARGET AUDIENCE: ${wizardData.targetAudience}
-COLOR MOOD: ${wizardData.colorMood}
 TYPOGRAPHY STYLE PREFERENCE: ${wizardData.typographyStyle}
 DESIGN DENSITY: ${densityLabel}
-${colorGuidance}
 
-Generate a COMPLETE design system as a JSON object with this EXACT structure. Be specific with actual values — real hex codes, real font names from Google Fonts, real pixel values. Every color should be carefully chosen for harmony and WCAG compliance.
+DECIDED COLOR PALETTE (use these exact colors, do not change them):
+${decidedColors}
+
+Generate the COMPLETE design system as a JSON object with this EXACT structure. Use ONLY real Google Fonts names. Be specific with actual values.
 
 {
   "brandName": "string — the company name, possibly refined",
   "tagline": "string — a short, punchy brand tagline",
   "brandOverview": "string — 2-3 sentence brand positioning statement",
   "colors": {
-    "primary": { "name": "string", "hex": "#XXXXXX", "usage": "string — when to use" },
+    "primary": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
     "secondary": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
     "accent": { "name": "string", "hex": "#XXXXXX", "usage": "string" },
     "neutrals": [
@@ -103,13 +175,13 @@ Generate a COMPLETE design system as a JSON object with this EXACT structure. Be
   },
   "logoGuidelines": {
     "description": "string — describe the ideal logo concept",
-    "clearSpaceRule": "string — e.g. 'Maintain clear space equal to the height of the logomark on all sides'",
-    "minimumSize": "string — e.g. '24px height for digital, 10mm for print'",
-    "donts": ["string — list of 4-5 things NOT to do with the logo"]
+    "clearSpaceRule": "string",
+    "minimumSize": "string",
+    "donts": ["string — 4-5 things NOT to do with the logo"]
   },
   "brandVoice": {
     "personality": "string — 1-2 sentence voice description",
-    "toneAttributes": ["string — list of 4-5 tone words"],
+    "toneAttributes": ["string — 4-5 tone words"],
     "dos": ["string — 4-5 writing guidelines to follow"],
     "donts": ["string — 4-5 writing mistakes to avoid"],
     "sampleHeadline": "string — example headline in brand voice",
@@ -117,11 +189,11 @@ Generate a COMPLETE design system as a JSON object with this EXACT structure. Be
   }
 }
 
-IMPORTANT: Provide 5 neutrals (from lightest to darkest). Make all colors harmonious with the chosen mood. Use ONLY real Google Fonts names. Return ONLY the JSON, no markdown fences or extra text.`;
+CRITICAL: Copy the DECIDED COLOR PALETTE values exactly into the colors object. Do not invent new colors. Return ONLY JSON.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
+      model: 'gemini-3-flash-preview',
+      contents: systemPrompt,
       config: {
         responseMimeType: 'application/json',
       },
@@ -129,12 +201,10 @@ IMPORTANT: Provide 5 neutrals (from lightest to darkest). Make all colors harmon
 
     const text = response.text ?? '';
 
-    // Parse the JSON — Gemini should return clean JSON with responseMimeType set
     let designSystem: DesignSystemOutput;
     try {
       designSystem = JSON.parse(text);
     } catch {
-      // If Gemini wraps in markdown fences, strip them
       const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       designSystem = JSON.parse(cleaned);
     }

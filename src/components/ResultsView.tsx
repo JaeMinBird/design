@@ -151,9 +151,9 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                             </div>
                             <div style={{ marginTop: 12 }}>
                                 <strong style={{ fontSize: 10, color: 'var(--red)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Don&apos;ts</strong>
-                                <ul style={{ margin: '4px 0 0', paddingLeft: 16, fontSize: 12, color: 'var(--ink-light)' }}>
-                                    {ds.logoGuidelines.donts.map((d, i) => <li key={i} style={{ marginBottom: 2 }}>{d}</li>)}
-                                </ul>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4, fontSize: 12, color: 'var(--ink-light)' }}>
+                                    {ds.logoGuidelines.donts.map((d, i) => <p key={i} style={{ margin: 0 }}>{d}</p>)}
+                                </div>
                             </div>
                         </div>
                     </div>
