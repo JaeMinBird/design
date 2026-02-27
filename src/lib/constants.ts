@@ -1,0 +1,96 @@
+import type { IndustryOption, AdjectiveOption, MoodOption } from './types';
+
+export const INDUSTRIES: IndustryOption[] = [
+    { value: 'technology', label: 'Technology' },
+    { value: 'healthcare', label: 'Healthcare' },
+    { value: 'finance', label: 'Finance' },
+    { value: 'education', label: 'Education' },
+    { value: 'retail', label: 'Retail & E-Commerce' },
+    { value: 'food', label: 'Food & Beverage' },
+    { value: 'media', label: 'Media & Entertainment' },
+    { value: 'real-estate', label: 'Real Estate' },
+    { value: 'travel', label: 'Travel & Hospitality' },
+    { value: 'fitness', label: 'Fitness & Wellness' },
+    { value: 'automotive', label: 'Automotive' },
+    { value: 'fashion', label: 'Fashion & Apparel' },
+    { value: 'nonprofit', label: 'Non-Profit' },
+    { value: 'legal', label: 'Legal' },
+    { value: 'architecture', label: 'Architecture & Design' },
+    { value: 'music', label: 'Music' },
+    { value: 'agriculture', label: 'Agriculture' },
+    { value: 'other', label: 'Other' },
+];
+
+export const ADJECTIVES: AdjectiveOption[] = [
+    { value: 'innovative', label: 'Innovative' },
+    { value: 'trustworthy', label: 'Trustworthy' },
+    { value: 'bold', label: 'Bold' },
+    { value: 'playful', label: 'Playful' },
+    { value: 'elegant', label: 'Elegant' },
+    { value: 'minimal', label: 'Minimal' },
+    { value: 'warm', label: 'Warm' },
+    { value: 'sophisticated', label: 'Sophisticated' },
+    { value: 'energetic', label: 'Energetic' },
+    { value: 'organic', label: 'Organic' },
+    { value: 'futuristic', label: 'Futuristic' },
+    { value: 'approachable', label: 'Approachable' },
+    { value: 'luxurious', label: 'Luxurious' },
+    { value: 'rebellious', label: 'Rebellious' },
+    { value: 'calm', label: 'Calm' },
+    { value: 'authoritative', label: 'Authoritative' },
+    { value: 'whimsical', label: 'Whimsical' },
+    { value: 'rugged', label: 'Rugged' },
+    { value: 'clean', label: 'Clean' },
+    { value: 'heritage', label: 'Heritage' },
+];
+
+export const COLOR_MOODS: MoodOption[] = [
+    {
+        id: 'vibrant',
+        label: 'Vibrant',
+        description: 'High saturation, energetic contrasts',
+        colors: ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'],
+    },
+    {
+        id: 'muted',
+        label: 'Muted',
+        description: 'Soft, desaturated, understated tones',
+        colors: ['#B5C7A3', '#D4A5A5', '#A5B4C4', '#C4B5A5', '#B5A5C4'],
+    },
+    {
+        id: 'monochrome',
+        label: 'Monochrome',
+        description: 'Shades of a single hue with neutrals',
+        colors: ['#2C3E50', '#4A6274', '#6B8599', '#8FA8BD', '#B3CBE0'],
+    },
+    {
+        id: 'earthy',
+        label: 'Earthy',
+        description: 'Warm, natural, grounded colors',
+        colors: ['#8B4513', '#CD853F', '#DEB887', '#F5DEB3', '#556B2F'],
+    },
+    {
+        id: 'pastel',
+        label: 'Pastel',
+        description: 'Lighthearted, soft, high lightness',
+        colors: ['#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA', '#E8BAFF'],
+    },
+    {
+        id: 'dark',
+        label: 'Dark & Bold',
+        description: 'Deep backgrounds with bright accents',
+        colors: ['#1A1A2E', '#16213E', '#0F3460', '#E94560', '#533483'],
+    },
+    {
+        id: 'warm',
+        label: 'Warm',
+        description: 'Reds, oranges, and golden tones',
+        colors: ['#FF6F61', '#FFB347', '#FF8C42', '#FFA07A', '#E25822'],
+    },
+    {
+        id: 'cool',
+        label: 'Cool',
+        description: 'Blues, teals, and icy tones',
+        colors: ['#6AABDB', '#48A9A6', '#4B8BBE', '#7EC8E3', '#3D5A80'],
+    },
+];

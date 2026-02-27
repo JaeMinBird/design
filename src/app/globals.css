@@ -1,26 +1,380 @@
 @import "tailwindcss";
 
+/* ─── Retro Wireframe Design System ─────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --blue: #6AABDB;
+  --blue-light: #A8D4F0;
+  --blue-faint: #E8F4FC;
+  --blue-dark: #4A8BBE;
+
+  --paper: #F5F1EB;
+  --paper-warm: #FAF7F2;
+  --ink: #2C2C2C;
+  --ink-light: #6B6B6B;
+  --ink-faint: #A8A8A8;
+  --stroke: #CDCDCD;
+  --stroke-light: #E2E2E2;
+
+  --red: #D9534F;
+  --green: #5CB85C;
+  --amber: #F0AD4E;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 9999px;
+  --radius-round: 50%;
+
+  --font-mono: 'Space Mono', 'Courier New', monospace;
+  --font-serif: 'Instrument Serif', 'Georgia', serif;
+
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+
+  --transition: 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Blueprint grid — cosmetic background */
+  --grid-color: rgba(106, 171, 219, 0.06);
+  --grid-size: 24px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-mono);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Reset & Base ──────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--blue-light);
+  color: var(--ink);
+}
+
+/* ─── Typography ────────────────────────────────────────────── */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+/* ─── Retro Wireframe Components ────────────────────────────── */
+
+.wire-card {
+  background: var(--paper-warm);
+  border: 1.5px solid var(--stroke);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.wire-card:hover {
+  border-color: var(--blue);
+  box-shadow: var(--shadow-card);
+}
+
+.wire-card--selected {
+  border-color: var(--blue);
+  background: var(--blue-faint);
+  box-shadow: 0 0 0 3px rgba(106, 171, 219, 0.15);
+}
+
+.wire-input {
+  width: 100%;
+  padding: 12px 18px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  background: white;
+  border: 1.5px solid var(--stroke);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.wire-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(106, 171, 219, 0.12);
+}
+
+.wire-input::placeholder {
+  color: var(--ink-faint);
+}
+
+.wire-textarea {
+  border-radius: var(--radius-md);
+  resize: vertical;
+  min-height: 80px;
+  padding: 14px 18px;
+}
+
+.wire-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1.5px solid var(--stroke);
+  border-radius: var(--radius-pill);
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+
+.wire-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue-dark);
+  box-shadow: var(--shadow-soft);
+}
+
+.wire-btn:active {
+  transform: scale(0.98);
+}
+
+.wire-btn--primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+
+.wire-btn--primary:hover {
+  background: var(--blue-dark);
+  border-color: var(--blue-dark);
+  color: white;
+}
+
+.wire-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.wire-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1.5px solid var(--stroke);
+  border-radius: var(--radius-pill);
+  background: white;
+  color: var(--ink-light);
+  cursor: pointer;
+  transition: all var(--transition);
+  user-select: none;
+}
+
+.wire-tag:hover {
+  border-color: var(--blue-light);
+  color: var(--ink);
+}
+
+.wire-tag--selected {
+  border-color: var(--blue);
+  background: var(--blue-faint);
+  color: var(--blue-dark);
+}
+
+.wire-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+
+.wire-divider {
+  border: none;
+  border-top: 1px dashed var(--stroke);
+  margin: 32px 0;
+}
+
+/* ─── Custom Slider ─────────────────────────────────────────── */
+
+.wire-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  background: var(--stroke);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.wire-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border: 2px solid var(--blue);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: box-shadow var(--transition);
+}
+
+.wire-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 6px rgba(106, 171, 219, 0.15);
+}
+
+.wire-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  background: white;
+  border: 2px solid var(--blue);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* ─── Color Picker Overrides ────────────────────────────────── */
+
+.react-colorful {
+  width: 100% !important;
+  height: 180px !important;
+  border-radius: var(--radius-md) !important;
+  border: 1.5px solid var(--stroke) !important;
+  overflow: hidden;
+}
+
+.react-colorful__saturation {
+  border-radius: 0 !important;
+  border-bottom: 1.5px solid var(--stroke) !important;
+}
+
+.react-colorful__hue {
+  height: 18px !important;
+  border-radius: 0 !important;
+}
+
+.react-colorful__pointer {
+  width: 20px !important;
+  height: 20px !important;
+  border: 2px solid white !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ─── Upload Area ───────────────────────────────────────────── */
+
+.wire-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  border: 2px dashed var(--stroke);
+  border-radius: var(--radius-lg);
+  background: white;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+}
+
+.wire-upload:hover {
+  border-color: var(--blue);
+  background: var(--blue-faint);
+}
+
+.wire-upload--active {
+  border-color: var(--blue);
+  background: var(--blue-faint);
+}
+
+/* ─── Swatch Grid ───────────────────────────────────────────── */
+
+.swatch-row {
+  display: flex;
+  gap: 4px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 32px;
+}
+
+.swatch-row > div {
+  flex: 1;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--stroke);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-faint);
+}
+
+/* ─── Animations ────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin 1.2s linear infinite;
 }
