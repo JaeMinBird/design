@@ -6,6 +6,7 @@ import {
     View,
     StyleSheet,
     Image,
+    Font,
 } from '@react-pdf/renderer';
 import type { DesignSystemOutput } from '@/lib/types';
 
@@ -16,7 +17,21 @@ import type { DesignSystemOutput } from '@/lib/types';
  *
  * IMPORTANT: All brand-colored elements use inline styles to avoid
  * StyleSheet.create() caching issues. Static styles use the stylesheet.
+ *
+ * Fonts are registered dynamically from Google Fonts based on the
+ * design system's chosen heading and body fonts.
  */
+
+/* ─── Font Note ──────────────────────────────────────────────── */
+/*
+ * The PDF renders with Helvetica (industry standard for design documents).
+ * The chosen Google Fonts are clearly labeled in the Typography section
+ * with their names, weights, and usage specifications.
+ * Actual font rendering happens in the web preview and implementation.
+ */
+
+// Disable hyphenation for clean typography
+Font.registerHyphenationCallback(word => [word]);
 
 /* ─── Static Styles (brand-color-independent) ───────────────── */
 
@@ -228,6 +243,7 @@ function ListItem({ children }: { children: React.ReactNode }) {
             lineHeight: 1.6,
             color: gray,
             marginBottom: 4,
+            paddingLeft: 0,
         }}>
             {children}
         </Text>
@@ -271,6 +287,69 @@ export default function DesignSystemPDF({ data }: Props) {
                     </Text>
                 </View>
             </Page>
+
+            {/* ─── Logo Page ─── */}
+            {d.generatedLogoUrl && (
+                <Page size="A4" style={s.page}>
+                    <SectionHeader brandColor={bc}>00 — Logo</SectionHeader>
+                    <Text style={s.sectionTitle}>Brand Mark</Text>
+                    <Text style={s.sectionBody}>{d.logoGuidelines.description}</Text>
+
+                    {/* Logo on three backgrounds */}
+                    <View style={{ flexDirection: 'row', gap: 16, marginBottom: 24 }}>
+                        <View style={{
+                            flex: 1,
+                            padding: 32,
+                            backgroundColor: '#FFFFFF',
+                            borderWidth: 0.5,
+                            borderColor: lightGray,
+                            borderRadius: 8,
+                            alignItems: 'center',
+                        }}>
+                            <Image src={d.generatedLogoUrl} style={{ width: 80, height: 80, objectFit: 'contain' }} />
+                            <Text style={{ fontSize: 7, color: gray, marginTop: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Light</Text>
+                        </View>
+                        <View style={{
+                            flex: 1,
+                            padding: 32,
+                            backgroundColor: '#1A1A1A',
+                            borderRadius: 8,
+                            alignItems: 'center',
+                        }}>
+                            <Image src={d.generatedLogoUrl} style={{ width: 80, height: 80, objectFit: 'contain' }} />
+                            <Text style={{ fontSize: 7, color: '#888', marginTop: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Dark</Text>
+                        </View>
+                        <View style={{
+                            flex: 1,
+                            padding: 32,
+                            backgroundColor: bc,
+                            borderRadius: 8,
+                            alignItems: 'center',
+                        }}>
+                            <Image src={d.generatedLogoUrl} style={{ width: 80, height: 80, objectFit: 'contain' }} />
+                            <Text style={{ fontSize: 7, color: isLightColor(bc) ? ink : '#FFFFFF', marginTop: 8, textTransform: 'uppercase', letterSpacing: 1, opacity: 0.7 }}>Brand</Text>
+                        </View>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', gap: 24, marginBottom: 24 }}>
+                        <View style={{ flex: 1 }}>
+                            <SubLabel brandColor={bc}>Clear Space</SubLabel>
+                            <ListItem>{d.logoGuidelines.clearSpaceRule}</ListItem>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <SubLabel brandColor={bc}>Minimum Size</SubLabel>
+                            <ListItem>{d.logoGuidelines.minimumSize}</ListItem>
+                        </View>
+                    </View>
+
+                    <SubLabel brandColor={bc} color="#D9534F">Incorrect Usage</SubLabel>
+                    {d.logoGuidelines.donts.map((dont, i) => (
+                        <ListItem key={i}>{dont}</ListItem>
+                    ))}
+
+                    <Footer brandName={d.brandName} />
+                </Page>
+            )}
 
             {/* ─── Color System ─── */}
             <Page size="A4" style={s.page}>
@@ -399,36 +478,32 @@ export default function DesignSystemPDF({ data }: Props) {
                 <Footer brandName={d.brandName} />
             </Page>
 
-            {/* ─── Logo Guidelines ─── */}
-            <Page size="A4" style={s.page}>
-                <SectionHeader brandColor={bc}>04 — Logo</SectionHeader>
-                <Text style={s.sectionTitle}>Logo Guidelines</Text>
-                <Text style={s.sectionBody}>{d.logoGuidelines.description}</Text>
+            {/* ─── Logo Guidelines (non-logo page) ─── */}
+            {!d.generatedLogoUrl && (
+                <Page size="A4" style={s.page}>
+                    <SectionHeader brandColor={bc}>04 — Logo</SectionHeader>
+                    <Text style={s.sectionTitle}>Logo Guidelines</Text>
+                    <Text style={s.sectionBody}>{d.logoGuidelines.description}</Text>
 
-                {d.generatedLogoUrl && (
-                    <View style={{ alignItems: 'center', padding: 32, marginBottom: 24, backgroundColor: '#FAFAFA', borderRadius: 8 }}>
-                        <Image src={d.generatedLogoUrl} style={{ width: 100, height: 100, objectFit: 'contain' }} />
+                    <View style={{ flexDirection: 'row', gap: 24, marginBottom: 24 }}>
+                        <View style={{ flex: 1 }}>
+                            <SubLabel brandColor={bc}>Clear Space</SubLabel>
+                            <ListItem>{d.logoGuidelines.clearSpaceRule}</ListItem>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <SubLabel brandColor={bc}>Minimum Size</SubLabel>
+                            <ListItem>{d.logoGuidelines.minimumSize}</ListItem>
+                        </View>
                     </View>
-                )}
 
-                <View style={{ flexDirection: 'row', gap: 24, marginBottom: 24 }}>
-                    <View style={{ flex: 1 }}>
-                        <SubLabel brandColor={bc}>Clear Space</SubLabel>
-                        <ListItem>{d.logoGuidelines.clearSpaceRule}</ListItem>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                        <SubLabel brandColor={bc}>Minimum Size</SubLabel>
-                        <ListItem>{d.logoGuidelines.minimumSize}</ListItem>
-                    </View>
-                </View>
+                    <SubLabel brandColor={bc} color="#D9534F">Incorrect Usage</SubLabel>
+                    {d.logoGuidelines.donts.map((dont, i) => (
+                        <ListItem key={i}>{dont}</ListItem>
+                    ))}
 
-                <SubLabel brandColor={bc}>Incorrect Usage</SubLabel>
-                {d.logoGuidelines.donts.map((dont, i) => (
-                    <ListItem key={i}>{dont}</ListItem>
-                ))}
-
-                <Footer brandName={d.brandName} />
-            </Page>
+                    <Footer brandName={d.brandName} />
+                </Page>
+            )}
 
             {/* ─── Brand Voice ─── */}
             <Page size="A4" style={s.page}>

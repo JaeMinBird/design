@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Download, Refresh, Eye } from './Icons';
+import { Download, Refresh } from './Icons';
 import { isLight, contrastRatio } from '@/lib/colors';
 import type { DesignSystemOutput } from '@/lib/types';
 
@@ -22,19 +22,22 @@ interface ResultsViewProps {
 
 /**
  * Interactive preview of the generated design system.
- * Organized into card sections: Colors, Typography, Spacing, Logo, Voice.
+ * Uses the brand's primary color as the accent throughout,
+ * replacing our app's default blue for a realistic preview.
  */
 export default function ResultsView({ designSystem, onStartOver }: ResultsViewProps) {
     const [activeSection, setActiveSection] = useState('overview');
     const ds = designSystem;
     const brandColor = ds.colors.primary.hex;
-    const brandColorLight = brandColor + '22'; // 13% opacity variant
+    const brandColorLight = brandColor + '22';
+    const brandColorMed = brandColor + '30';
 
     const sections = [
         { id: 'overview', label: 'Overview' },
         { id: 'colors', label: 'Colors' },
         { id: 'typography', label: 'Type' },
         { id: 'spacing', label: 'Spacing' },
+        { id: 'logo', label: 'Logo' },
         { id: 'voice', label: 'Voice' },
     ];
 
@@ -63,7 +66,7 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                     {swatch.hex.toUpperCase()}
                 </span>
                 {large && (
-                    <span style={{ fontSize: 10, opacity: 0.7, marginTop: 4/*, lineHeight: 1.3*/ }}>
+                    <span style={{ fontSize: 10, opacity: 0.7, marginTop: 4 }}>
                         {swatch.usage}
                     </span>
                 )}
@@ -72,12 +75,52 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
     }, []);
 
     return (
-        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div
+            className="animate-fade-in"
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 24,
+                // Override CSS custom properties for brand color
+                // This makes hover effects, focus rings, etc. use brand color
+                ['--blue' as string]: brandColor,
+                ['--blue-light' as string]: brandColor + '66',
+                ['--blue-faint' as string]: brandColorLight,
+                ['--blue-dark' as string]: brandColor,
+            }}
+        >
             {/* Header */}
             <div style={{ textAlign: 'center' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', border: `1.5px solid ${brandColor}`, marginBottom: 16, color: brandColor }}>
-                    <Eye size={22} />
-                </div>
+                {ds.generatedLogoUrl ? (
+                    <div style={{ marginBottom: 16 }}>
+                        <img
+                            src={ds.generatedLogoUrl}
+                            alt={`${ds.brandName} logo`}
+                            style={{
+                                width: 56,
+                                height: 56,
+                                objectFit: 'contain',
+                                borderRadius: 'var(--radius-md)',
+                            }}
+                        />
+                    </div>
+                ) : (
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        border: `1.5px solid ${brandColor}`,
+                        marginBottom: 16,
+                        color: brandColor,
+                        fontSize: 20,
+                        fontFamily: 'var(--font-serif)',
+                    }}>
+                        {ds.brandName.charAt(0)}
+                    </div>
+                )}
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 32, margin: '0 0 4px' }}>{ds.brandName}</h2>
                 <p style={{ color: 'var(--ink-light)', fontSize: 14, margin: '0 0 4px', fontStyle: 'italic', fontFamily: 'var(--font-serif)' }}>
                     {ds.tagline}
@@ -109,7 +152,19 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
             </div>
 
             {/* Content */}
-            <div className="wire-card" style={{ padding: 28 }}>
+            <div
+                className="wire-card"
+                style={{
+                    padding: 28,
+                    borderColor: 'var(--stroke)',
+                }}
+                onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = brandColor;
+                }}
+                onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--stroke)';
+                }}
+            >
                 {/* Overview */}
                 {activeSection === 'overview' && (
                     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -118,42 +173,25 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                             <p style={{ margin: 0, lineHeight: 1.7, fontSize: 14 }}>{ds.brandOverview}</p>
                         </div>
 
-                        {/* Logo */}
-                        {ds.generatedLogoUrl && (
-                            <div>
-                                <label className="wire-label">Logo</label>
-                                <div style={{
-                                    padding: 24,
-                                    background: 'white',
-                                    borderRadius: 'var(--radius-md)',
-                                    border: '1px solid var(--stroke-light)',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                }}>
-                                    <img src={ds.generatedLogoUrl} alt="Logo" style={{ maxHeight: 80, objectFit: 'contain' }} />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Logo Guidelines */}
+                        {/* Quick color preview */}
                         <div>
-                            <label className="wire-label">Logo Guidelines</label>
-                            <p style={{ margin: '0 0 8px', fontSize: 13 }}>{ds.logoGuidelines.description}</p>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12 }}>
-                                <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)' }}>
-                                    <strong style={{ fontSize: 10, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Clear Space</strong>
-                                    <p style={{ margin: '4px 0 0', color: 'var(--ink-light)' }}>{ds.logoGuidelines.clearSpaceRule}</p>
-                                </div>
-                                <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)' }}>
-                                    <strong style={{ fontSize: 10, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Min Size</strong>
-                                    <p style={{ margin: '4px 0 0', color: 'var(--ink-light)' }}>{ds.logoGuidelines.minimumSize}</p>
-                                </div>
+                            <label className="wire-label">Core Palette</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                                {renderSwatch(ds.colors.primary)}
+                                {renderSwatch(ds.colors.secondary)}
+                                {renderSwatch(ds.colors.accent)}
                             </div>
-                            <div style={{ marginTop: 12 }}>
-                                <strong style={{ fontSize: 10, color: 'var(--red)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Don&apos;ts</strong>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4, fontSize: 12, color: 'var(--ink-light)' }}>
-                                    {ds.logoGuidelines.donts.map((d, i) => <p key={i} style={{ margin: 0 }}>{d}</p>)}
-                                </div>
+                        </div>
+
+                        {/* Typography preview */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                            <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)' }}>
+                                <label className="wire-label">Heading Font</label>
+                                <p style={{ margin: 0, fontSize: 18, fontFamily: 'var(--font-serif)' }}>{ds.typography.headingFont}</p>
+                            </div>
+                            <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)' }}>
+                                <label className="wire-label">Body Font</label>
+                                <p style={{ margin: 0, fontSize: 18 }}>{ds.typography.bodyFont}</p>
                             </div>
                         </div>
                     </div>
@@ -162,7 +200,6 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                 {/* Colors */}
                 {activeSection === 'colors' && (
                     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                        {/* Primary / Secondary / Accent */}
                         <div>
                             <label className="wire-label">Core Palette</label>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -172,7 +209,6 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                             </div>
                         </div>
 
-                        {/* Neutrals */}
                         <div>
                             <label className="wire-label">Neutrals</label>
                             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${ds.colors.neutrals.length}, 1fr)`, gap: 4 }}>
@@ -180,7 +216,6 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                             </div>
                         </div>
 
-                        {/* Semantic */}
                         <div>
                             <label className="wire-label">Semantic</label>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
@@ -191,7 +226,6 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                             </div>
                         </div>
 
-                        {/* Contrast checking */}
                         <div>
                             <label className="wire-label">Contrast Ratios (vs White)</label>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
@@ -203,7 +237,7 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                                             <div style={{ width: 16, height: 16, borderRadius: '50%', background: swatch.hex, border: '1px solid var(--stroke)', flexShrink: 0 }} />
                                             <span style={{ flex: 1, fontFamily: 'var(--font-mono)' }}>{swatch.name}</span>
                                             <span style={{ fontFamily: 'var(--font-mono)', color: pass ? 'var(--green)' : 'var(--amber)' }}>
-                                                {ratio.toFixed(1)}:1 {pass ? 'AA ✓' : 'AA ✗'}
+                                                {ratio.toFixed(1)}:1 {pass ? 'AA Pass' : 'AA Fail'}
                                             </span>
                                         </div>
                                     );
@@ -311,6 +345,88 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                     </div>
                 )}
 
+                {/* Logo */}
+                {activeSection === 'logo' && (
+                    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        {ds.generatedLogoUrl && (
+                            <div>
+                                <label className="wire-label">Logo Mark</label>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    gap: 24,
+                                    flexWrap: 'wrap',
+                                }}>
+                                    {/* Light background */}
+                                    <div style={{
+                                        padding: 32,
+                                        background: 'white',
+                                        borderRadius: 'var(--radius-md)',
+                                        border: '1px solid var(--stroke-light)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                    }}>
+                                        <img src={ds.generatedLogoUrl} alt="Logo on light" style={{ maxHeight: 80, objectFit: 'contain' }} />
+                                        <span style={{ fontSize: 10, color: 'var(--ink-faint)', fontFamily: 'var(--font-mono)' }}>Light Background</span>
+                                    </div>
+                                    {/* Dark background */}
+                                    <div style={{
+                                        padding: 32,
+                                        background: '#1a1a1a',
+                                        borderRadius: 'var(--radius-md)',
+                                        border: '1px solid #333',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                    }}>
+                                        <img src={ds.generatedLogoUrl} alt="Logo on dark" style={{ maxHeight: 80, objectFit: 'contain' }} />
+                                        <span style={{ fontSize: 10, color: '#888', fontFamily: 'var(--font-mono)' }}>Dark Background</span>
+                                    </div>
+                                    {/* Brand color background */}
+                                    <div style={{
+                                        padding: 32,
+                                        background: brandColor,
+                                        borderRadius: 'var(--radius-md)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                    }}>
+                                        <img src={ds.generatedLogoUrl} alt="Logo on brand" style={{ maxHeight: 80, objectFit: 'contain' }} />
+                                        <span style={{ fontSize: 10, color: isLight(brandColor) ? '#2C2C2C' : '#FFFFFF', fontFamily: 'var(--font-mono)', opacity: 0.7 }}>Brand Color</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <label className="wire-label">Description</label>
+                            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7 }}>{ds.logoGuidelines.description}</p>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12 }}>
+                            <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)' }}>
+                                <strong style={{ fontSize: 10, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Clear Space</strong>
+                                <p style={{ margin: '4px 0 0', color: 'var(--ink-light)' }}>{ds.logoGuidelines.clearSpaceRule}</p>
+                            </div>
+                            <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)' }}>
+                                <strong style={{ fontSize: 10, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Min Size</strong>
+                                <p style={{ margin: '4px 0 0', color: 'var(--ink-light)' }}>{ds.logoGuidelines.minimumSize}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="wire-label" style={{ color: 'var(--red)' }}>Incorrect Usage</label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--ink-light)' }}>
+                                {ds.logoGuidelines.donts.map((d, i) => <p key={i} style={{ margin: 0 }}>{d}</p>)}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Brand Voice */}
                 {activeSection === 'voice' && (
                     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -332,13 +448,13 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                             <div>
                                 <label className="wire-label" style={{ color: 'var(--green)' }}>Do&apos;s</label>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: 'var(--ink-light)' }}>
-                                    {ds.brandVoice.dos.map((d, i) => <p key={i} style={{ margin: 0 }}>✓ {d}</p>)}
+                                    {ds.brandVoice.dos.map((d, i) => <p key={i} style={{ margin: 0 }}>{d}</p>)}
                                 </div>
                             </div>
                             <div>
                                 <label className="wire-label" style={{ color: 'var(--red)' }}>Don&apos;ts</label>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: 'var(--ink-light)' }}>
-                                    {ds.brandVoice.donts.map((d, i) => <p key={i} style={{ margin: 0 }}>✗ {d}</p>)}
+                                    {ds.brandVoice.donts.map((d, i) => <p key={i} style={{ margin: 0 }}>{d}</p>)}
                                 </div>
                             </div>
                         </div>
