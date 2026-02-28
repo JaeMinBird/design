@@ -63,26 +63,28 @@ export default function Home() {
     setError(null);
 
     try {
-      // If no logo, try to generate one
-      if (!data.logo) {
+      let generationData = { ...data };
+
+      // If no logo uploaded, generate one
+      if (!generationData.logo) {
         try {
           const logoRes = await fetch('/api/generate-logo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              companyName: data.companyName,
-              industry: data.industry,
-              adjectives: data.adjectives,
+              companyName: generationData.companyName,
+              industry: generationData.industry,
+              adjectives: generationData.adjectives,
             }),
           });
           if (logoRes.ok) {
             const logoData = await logoRes.json();
             if (logoData.imageBase64) {
-              data.logo = logoData.imageBase64;
+              generationData.logo = logoData.imageBase64;
+              updateData({ logo: logoData.imageBase64 });
             }
           }
         } catch {
-          // Logo generation is optional — continue without it
           console.warn('Logo generation failed, continuing without logo');
         }
       }
@@ -91,7 +93,7 @@ export default function Home() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(generationData),
       });
 
       if (!res.ok) {

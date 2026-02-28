@@ -195,7 +195,7 @@ function Footer({ brandName }: { brandName: string }) {
 /* ─── Inline style helpers for brand-colored elements ───────── */
 
 /** Section header like "01 — COLOR SYSTEM" — uses brand primary */
-function SectionHeader({ children, brandColor }: { children: string; brandColor: string }) {
+function SectionHeader({ children, brandColor, fontFamily }: { children: string; brandColor: string; fontFamily?: string }) {
     return (
         <Text style={{
             fontSize: 8,
@@ -203,7 +203,7 @@ function SectionHeader({ children, brandColor }: { children: string; brandColor:
             textTransform: 'uppercase',
             letterSpacing: 3,
             marginBottom: 6,
-            fontFamily: 'Helvetica-Bold',
+            fontFamily: fontFamily || 'Helvetica-Bold',
         }}>
             {children}
         </Text>
@@ -211,14 +211,14 @@ function SectionHeader({ children, brandColor }: { children: string; brandColor:
 }
 
 /** Sub-label like "CORE", "NEUTRALS" — uses brand primary */
-function SubLabel({ children, brandColor, color }: { children: string; brandColor: string; color?: string }) {
+function SubLabel({ children, brandColor, color, fontFamily }: { children: string; brandColor: string; color?: string; fontFamily?: string }) {
     return (
         <Text style={{
             fontSize: 7,
             color: color || brandColor,
             textTransform: 'uppercase',
             letterSpacing: 1.5,
-            fontFamily: 'Helvetica-Bold',
+            fontFamily: fontFamily || 'Helvetica-Bold',
             marginBottom: 4,
             marginTop: 12,
         }}>
@@ -252,6 +252,8 @@ export default function DesignSystemPDF({ data }: Props) {
     const d = data;
     const bc = d.colors.primary.hex; // brand color
     const bt = tint(bc); // brand tint
+    const hf = d.typography.headingFont; // heading font family
+    const bf = d.typography.bodyFont; // body font family
 
     return (
         <Document
