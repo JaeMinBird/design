@@ -25,27 +25,6 @@ import type { DesignSystemOutput } from '@/lib/types';
 // Disable hyphenation for clean typography
 Font.registerHyphenationCallback(word => [word]);
 
-/* ─── Dynamic Google Font Registration ───────────────────────── */
-
-const registeredFonts = new Set<string>();
-
-/**
- * Register a Google Font for PDF rendering via the fontsource CDN.
- * Only registers weight 400 (universally available for all Google Fonts).
- * Display fonts like DM Serif Display only ship weight 400, so requesting
- * 600/700 would 404 and crash the PDF renderer.
- */
-function registerGoogleFont(fontFamily: string) {
-    if (registeredFonts.has(fontFamily)) return;
-    const fontId = fontFamily.toLowerCase().replace(/\s+/g, '-');
-    const base = `https://cdn.jsdelivr.net/fontsource/fonts/${fontId}@latest/latin`;
-    Font.register({
-        family: fontFamily,
-        src: `${base}-400-normal.ttf`,
-    });
-    registeredFonts.add(fontFamily);
-}
-
 /* ─── Static Styles (brand-color-independent) ───────────────── */
 
 const ink = '#2C2C2C';
@@ -55,6 +34,7 @@ const lightGray = '#E2E2E2';
 const s = StyleSheet.create({
     page: {
         padding: 48,
+        fontFamily: 'Helvetica',
         fontSize: 9,
         color: ink,
         backgroundColor: '#FFFFFF',
@@ -69,6 +49,7 @@ const s = StyleSheet.create({
     },
     coverTitle: {
         fontSize: 42,
+        fontFamily: 'Helvetica-Bold',
         letterSpacing: -1,
         marginBottom: 12,
         color: ink,
@@ -86,6 +67,7 @@ const s = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 24,
+        fontFamily: 'Helvetica-Bold',
         marginBottom: 16,
         color: ink,
     },
@@ -111,6 +93,7 @@ const s = StyleSheet.create({
     },
     swatchName: {
         fontSize: 7,
+        fontFamily: 'Helvetica-Bold',
         marginBottom: 2,
     },
     swatchHex: {
@@ -126,6 +109,7 @@ const s = StyleSheet.create({
     },
     typeName: {
         width: 80,
+        fontFamily: 'Helvetica-Bold',
         fontSize: 9,
     },
     typeSpec: {
@@ -211,7 +195,7 @@ function Footer({ brandName }: { brandName: string }) {
 /* ─── Inline style helpers for brand-colored elements ───────── */
 
 /** Section header like "01 — COLOR SYSTEM" — uses brand primary */
-function SectionHeader({ children, brandColor, fontFamily }: { children: string; brandColor: string; fontFamily?: string }) {
+function SectionHeader({ children, brandColor }: { children: string; brandColor: string }) {
     return (
         <Text style={{
             fontSize: 8,
@@ -219,7 +203,7 @@ function SectionHeader({ children, brandColor, fontFamily }: { children: string;
             textTransform: 'uppercase',
             letterSpacing: 3,
             marginBottom: 6,
-            fontFamily: fontFamily,
+            fontFamily: 'Helvetica-Bold',
         }}>
             {children}
         </Text>
@@ -227,14 +211,14 @@ function SectionHeader({ children, brandColor, fontFamily }: { children: string;
 }
 
 /** Sub-label like "CORE", "NEUTRALS" — uses brand primary */
-function SubLabel({ children, brandColor, color, fontFamily }: { children: string; brandColor: string; color?: string; fontFamily?: string }) {
+function SubLabel({ children, brandColor, color }: { children: string; brandColor: string; color?: string }) {
     return (
         <Text style={{
             fontSize: 7,
             color: color || brandColor,
             textTransform: 'uppercase',
             letterSpacing: 1.5,
-            fontFamily: fontFamily,
+            fontFamily: 'Helvetica-Bold',
             marginBottom: 4,
             marginTop: 12,
         }}>
@@ -268,12 +252,6 @@ export default function DesignSystemPDF({ data }: Props) {
     const d = data;
     const bc = d.colors.primary.hex; // brand color
     const bt = tint(bc); // brand tint
-
-    // Register the design system's chosen fonts
-    registerGoogleFont(d.typography.headingFont);
-    registerGoogleFont(d.typography.bodyFont);
-    const hf = d.typography.headingFont; // heading font family
-    const bf = d.typography.bodyFont;    // body font family
 
     return (
         <Document

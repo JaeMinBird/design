@@ -2,7 +2,6 @@
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { HexColorPicker } from 'react-colorful';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Building, Upload, X } from '../Icons';
 import { INDUSTRIES } from '@/lib/constants';
 import type { WizardState } from '@/lib/types';
@@ -79,11 +78,9 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                 />
             </div>
 
-            {/* Industry — pill stays fixed, list slides out beneath */}
-            <div ref={dropdownRef} style={{ position: 'relative', zIndex: 20 }}>
+            {/* Industry — seamless dropdown that extends from the input bar */}
+            <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <label className="wire-label">Industry *</label>
-
-                {/* Pill trigger — never changes shape */}
                 <button
                     type="button"
                     className="wire-input"
@@ -96,8 +93,6 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                         display: 'flex',
                         alignItems: 'center',
                         width: '100%',
-                        position: 'relative',
-                        zIndex: 2,
                         color: selectedIndustry ? 'var(--ink)' : 'var(--ink-faint)',
                         borderColor: dropdownOpen ? 'var(--blue)' : undefined,
                         boxShadow: dropdownOpen ? '0 0 0 3px rgba(106, 171, 219, 0.12)' : undefined,
@@ -105,85 +100,66 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                     }}
                 >
                     {selectedIndustry ? selectedIndustry.label : 'Select an industry...'}
-                    <span style={{
-                        position: 'absolute',
-                        right: 16,
-                        color: 'var(--ink-faint)',
-                        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
-                    }}>
+                    <span style={{ position: 'absolute', right: 16, color: 'var(--ink-faint)', transition: 'transform 0.2s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0)' }}>
                         ↓
                     </span>
                 </button>
 
-                {/* List — slides out from behind the pill */}
-                <AnimatePresence initial={false}>
-                    {dropdownOpen && (
-                        <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: 'auto' }}
-                            exit={{ height: 0 }}
-                            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-                            style={{
-                                position: 'absolute',
-                                top: '50%',
-                                left: 0,
-                                right: 0,
-                                zIndex: 1,
-                                overflow: 'hidden',
-                            }}
-                        >
-                            <div
-                                className="dropdown-menu-scroll"
+                {dropdownOpen && (
+                    <div
+                        className="dropdown-menu-scroll"
+                        style={{
+                            position: 'absolute',
+                            top: 'calc(100% + 4px)',
+                            left: 0,
+                            right: 0,
+                            background: 'white',
+                            border: '1.5px solid var(--blue)',
+                            borderRadius: 'var(--radius-md)',
+                            maxHeight: 240,
+                            overflowY: 'auto',
+                            zIndex: 20,
+                            boxShadow: '0 0 0 3px rgba(106, 171, 219, 0.12), 0 8px 24px rgba(0,0,0,0.08)',
+                            paddingTop: 6,
+                            paddingBottom: 6
+                        }}
+                    >
+                        {INDUSTRIES.map((ind) => (
+                            <button
+                                key={ind.value}
+                                type="button"
+                                onClick={() => {
+                                    onChange({ industry: ind.value });
+                                    setDropdownOpen(false);
+                                }}
                                 style={{
-                                    background: 'white',
-                                    border: '1.5px solid var(--blue)',
-                                    borderTop: 'none',
-                                    borderRadius: '0 0 var(--radius-md) var(--radius-md)',
-                                    boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                                    maxHeight: 260,
-                                    overflowY: 'auto',
-                                    paddingTop: 28,
+                                    width: '100%',
+                                    padding: '10px 18px',
+                                    border: 'none',
+                                    background: data.industry === ind.value ? 'var(--blue-faint)' : 'transparent',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    fontFamily: 'var(--font-mono)',
+                                    fontSize: 13,
+                                    color: data.industry === ind.value ? 'var(--blue-dark)' : 'var(--ink)',
+                                    transition: 'background 0.1s',
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (data.industry !== ind.value) {
+                                        (e.target as HTMLElement).style.background = '#f8f8f8';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (data.industry !== ind.value) {
+                                        (e.target as HTMLElement).style.background = 'transparent';
+                                    }
                                 }}
                             >
-                                {INDUSTRIES.map((ind) => (
-                                    <button
-                                        key={ind.value}
-                                        type="button"
-                                        onClick={() => {
-                                            onChange({ industry: ind.value });
-                                            setDropdownOpen(false);
-                                        }}
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 18px',
-                                            border: 'none',
-                                            background: data.industry === ind.value ? 'var(--blue-faint)' : 'transparent',
-                                            cursor: 'pointer',
-                                            textAlign: 'left',
-                                            fontFamily: 'var(--font-mono)',
-                                            fontSize: 13,
-                                            color: data.industry === ind.value ? 'var(--blue-dark)' : 'var(--ink)',
-                                            transition: 'background 0.1s',
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            if (data.industry !== ind.value) {
-                                                (e.target as HTMLElement).style.background = '#f8f8f8';
-                                            }
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            if (data.industry !== ind.value) {
-                                                (e.target as HTMLElement).style.background = 'transparent';
-                                            }
-                                        }}
-                                    >
-                                        {ind.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                {ind.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Two column: Logo + Color */}
