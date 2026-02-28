@@ -22,16 +22,27 @@ import type { DesignSystemOutput } from '@/lib/types';
  * design system's chosen heading and body fonts.
  */
 
-/* ─── Font Note ──────────────────────────────────────────────── */
-/*
- * The PDF renders with Helvetica (industry standard for design documents).
- * The chosen Google Fonts are clearly labeled in the Typography section
- * with their names, weights, and usage specifications.
- * Actual font rendering happens in the web preview and implementation.
- */
-
 // Disable hyphenation for clean typography
 Font.registerHyphenationCallback(word => [word]);
+
+/* ─── Dynamic Google Font Registration ───────────────────────── */
+
+const registeredFonts = new Set<string>();
+
+function registerGoogleFont(fontFamily: string) {
+    if (registeredFonts.has(fontFamily)) return;
+    const fontId = fontFamily.toLowerCase().replace(/\s+/g, '-');
+    const base = `https://cdn.jsdelivr.net/fontsource/fonts/${fontId}@latest/latin`;
+    Font.register({
+        family: fontFamily,
+        fonts: [
+            { src: `${base}-400-normal.woff2`, fontWeight: 400 },
+            { src: `${base}-600-normal.woff2`, fontWeight: 600 },
+            { src: `${base}-700-normal.woff2`, fontWeight: 700 },
+        ],
+    });
+    registeredFonts.add(fontFamily);
+}
 
 /* ─── Static Styles (brand-color-independent) ───────────────── */
 
@@ -42,7 +53,6 @@ const lightGray = '#E2E2E2';
 const s = StyleSheet.create({
     page: {
         padding: 48,
-        fontFamily: 'Helvetica',
         fontSize: 9,
         color: ink,
         backgroundColor: '#FFFFFF',
@@ -57,10 +67,10 @@ const s = StyleSheet.create({
     },
     coverTitle: {
         fontSize: 42,
-        fontFamily: 'Helvetica-Bold',
         letterSpacing: -1,
         marginBottom: 12,
         color: ink,
+        fontWeight: 700,
     },
     coverTagline: {
         fontSize: 14,
@@ -75,7 +85,7 @@ const s = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 24,
-        fontFamily: 'Helvetica-Bold',
+        fontWeight: 700,
         marginBottom: 16,
         color: ink,
     },
@@ -101,7 +111,7 @@ const s = StyleSheet.create({
     },
     swatchName: {
         fontSize: 7,
-        fontFamily: 'Helvetica-Bold',
+        fontWeight: 700,
         marginBottom: 2,
     },
     swatchHex: {
@@ -117,7 +127,7 @@ const s = StyleSheet.create({
     },
     typeName: {
         width: 80,
-        fontFamily: 'Helvetica-Bold',
+        fontWeight: 700,
         fontSize: 9,
     },
     typeSpec: {
@@ -203,7 +213,7 @@ function Footer({ brandName }: { brandName: string }) {
 /* ─── Inline style helpers for brand-colored elements ───────── */
 
 /** Section header like "01 — COLOR SYSTEM" — uses brand primary */
-function SectionHeader({ children, brandColor }: { children: string; brandColor: string }) {
+function SectionHeader({ children, brandColor, fontFamily }: { children: string; brandColor: string; fontFamily?: string }) {
     return (
         <Text style={{
             fontSize: 8,
@@ -211,7 +221,8 @@ function SectionHeader({ children, brandColor }: { children: string; brandColor:
             textTransform: 'uppercase',
             letterSpacing: 3,
             marginBottom: 6,
-            fontFamily: 'Helvetica-Bold',
+            fontFamily: fontFamily,
+            fontWeight: 700,
         }}>
             {children}
         </Text>
@@ -219,14 +230,15 @@ function SectionHeader({ children, brandColor }: { children: string; brandColor:
 }
 
 /** Sub-label like "CORE", "NEUTRALS" — uses brand primary */
-function SubLabel({ children, brandColor, color }: { children: string; brandColor: string; color?: string }) {
+function SubLabel({ children, brandColor, color, fontFamily }: { children: string; brandColor: string; color?: string; fontFamily?: string }) {
     return (
         <Text style={{
             fontSize: 7,
             color: color || brandColor,
             textTransform: 'uppercase',
             letterSpacing: 1.5,
-            fontFamily: 'Helvetica-Bold',
+            fontFamily: fontFamily,
+            fontWeight: 700,
             marginBottom: 4,
             marginTop: 12,
         }}>
@@ -261,6 +273,12 @@ export default function DesignSystemPDF({ data }: Props) {
     const bc = d.colors.primary.hex; // brand color
     const bt = tint(bc); // brand tint
 
+    // Register the design system's chosen fonts
+    registerGoogleFont(d.typography.headingFont);
+    registerGoogleFont(d.typography.bodyFont);
+    const hf = d.typography.headingFont; // heading font family
+    const bf = d.typography.bodyFont;    // body font family
+
     return (
         <Document
             title={`${d.brandName} Design System`}
@@ -273,16 +291,16 @@ export default function DesignSystemPDF({ data }: Props) {
                     {d.generatedLogoUrl && (
                         <Image src={d.generatedLogoUrl} style={{ width: 60, height: 60, marginBottom: 32 }} />
                     )}
-                    <Text style={s.coverTitle}>{d.brandName}</Text>
-                    <Text style={s.coverTagline}>{d.tagline}</Text>
+                    <Text style={[s.coverTitle, { fontFamily: hf }]}>{d.brandName}</Text>
+                    <Text style={[s.coverTagline, { fontFamily: bf }]}>{d.tagline}</Text>
                     <View style={{ width: 48, height: 3, backgroundColor: bc, marginBottom: 24 }} />
-                    <Text style={{ fontSize: 11, lineHeight: 1.8, color: gray, maxWidth: 380 }}>
+                    <Text style={{ fontSize: 11, lineHeight: 1.8, color: gray, maxWidth: 380, fontFamily: bf }}>
                         {d.brandOverview}
                     </Text>
                 </View>
                 <View>
-                    <Text style={s.coverMeta}>Design System Manual</Text>
-                    <Text style={[s.coverMeta, { marginTop: 4 }]}>
+                    <Text style={[s.coverMeta, { fontFamily: bf }]}>Design System Manual</Text>
+                    <Text style={[s.coverMeta, { marginTop: 4, fontFamily: bf }]}>
                         Generated {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </Text>
                 </View>
@@ -290,9 +308,9 @@ export default function DesignSystemPDF({ data }: Props) {
 
             {/* ─── Logo Page ─── */}
             {d.generatedLogoUrl && (
-                <Page size="A4" style={s.page}>
-                    <SectionHeader brandColor={bc}>00 — Logo</SectionHeader>
-                    <Text style={s.sectionTitle}>Brand Mark</Text>
+                <Page size="A4" style={[s.page, { fontFamily: bf }]}>
+                    <SectionHeader brandColor={bc} fontFamily={bf}>00 — Logo</SectionHeader>
+                    <Text style={[s.sectionTitle, { fontFamily: hf }]}>Brand Mark</Text>
                     <Text style={s.sectionBody}>{d.logoGuidelines.description}</Text>
 
                     {/* Logo on three backgrounds */}
@@ -333,16 +351,16 @@ export default function DesignSystemPDF({ data }: Props) {
 
                     <View style={{ flexDirection: 'row', gap: 24, marginBottom: 24 }}>
                         <View style={{ flex: 1 }}>
-                            <SubLabel brandColor={bc}>Clear Space</SubLabel>
+                            <SubLabel brandColor={bc} fontFamily={bf}>Clear Space</SubLabel>
                             <ListItem>{d.logoGuidelines.clearSpaceRule}</ListItem>
                         </View>
                         <View style={{ flex: 1 }}>
-                            <SubLabel brandColor={bc}>Minimum Size</SubLabel>
+                            <SubLabel brandColor={bc} fontFamily={bf}>Minimum Size</SubLabel>
                             <ListItem>{d.logoGuidelines.minimumSize}</ListItem>
                         </View>
                     </View>
 
-                    <SubLabel brandColor={bc} color="#D9534F">Incorrect Usage</SubLabel>
+                    <SubLabel brandColor={bc} color="#D9534F" fontFamily={bf}>Incorrect Usage</SubLabel>
                     {d.logoGuidelines.donts.map((dont, i) => (
                         <ListItem key={i}>{dont}</ListItem>
                     ))}
@@ -352,14 +370,14 @@ export default function DesignSystemPDF({ data }: Props) {
             )}
 
             {/* ─── Color System ─── */}
-            <Page size="A4" style={s.page}>
-                <SectionHeader brandColor={bc}>01 — Color System</SectionHeader>
-                <Text style={s.sectionTitle}>Color Palette</Text>
+            <Page size="A4" style={[s.page, { fontFamily: bf }]}>
+                <SectionHeader brandColor={bc} fontFamily={bf}>01 — Color System</SectionHeader>
+                <Text style={[s.sectionTitle, { fontFamily: hf }]}>Color Palette</Text>
                 <Text style={s.sectionBody}>
                     These colors form the foundation of the brand&apos;s visual identity. Use them consistently across all touchpoints.
                 </Text>
 
-                <SubLabel brandColor={bc}>Core</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Core</SubLabel>
                 <View style={s.swatchGrid}>
                     {[d.colors.primary, d.colors.secondary, d.colors.accent].map((sw) => (
                         <View key={sw.name} style={[s.swatch, { backgroundColor: sw.hex }]}>
@@ -369,7 +387,7 @@ export default function DesignSystemPDF({ data }: Props) {
                     ))}
                 </View>
 
-                <SubLabel brandColor={bc}>Neutrals</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Neutrals</SubLabel>
                 <View style={s.swatchGrid}>
                     {d.colors.neutrals.map((sw) => (
                         <View key={sw.name} style={[s.swatch, { backgroundColor: sw.hex, width: 60, height: 60 }]}>
@@ -379,7 +397,7 @@ export default function DesignSystemPDF({ data }: Props) {
                     ))}
                 </View>
 
-                <SubLabel brandColor={bc}>Semantic</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Semantic</SubLabel>
                 <View style={s.swatchGrid}>
                     {[d.colors.semantic.success, d.colors.semantic.warning, d.colors.semantic.error, d.colors.semantic.info].map((sw) => (
                         <View key={sw.name} style={[s.swatch, { backgroundColor: sw.hex, width: 60, height: 60 }]}>
@@ -389,7 +407,7 @@ export default function DesignSystemPDF({ data }: Props) {
                     ))}
                 </View>
 
-                <SubLabel brandColor={bc}>Usage Guidelines</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Usage Guidelines</SubLabel>
                 <ListItem>Primary: {d.colors.primary.usage}</ListItem>
                 <ListItem>Secondary: {d.colors.secondary.usage}</ListItem>
                 <ListItem>Accent: {d.colors.accent.usage}</ListItem>
@@ -398,22 +416,22 @@ export default function DesignSystemPDF({ data }: Props) {
             </Page>
 
             {/* ─── Typography ─── */}
-            <Page size="A4" style={s.page}>
-                <SectionHeader brandColor={bc}>02 — Typography</SectionHeader>
-                <Text style={s.sectionTitle}>Type System</Text>
+            <Page size="A4" style={[s.page, { fontFamily: bf }]}>
+                <SectionHeader brandColor={bc} fontFamily={bf}>02 — Typography</SectionHeader>
+                <Text style={[s.sectionTitle, { fontFamily: hf }]}>Type System</Text>
 
                 <View style={{ flexDirection: 'row', gap: 24, marginBottom: 24 }}>
                     <View style={{ flex: 1, padding: 16, backgroundColor: '#FAFAFA', borderRadius: 6 }}>
-                        <SubLabel brandColor={bc}>Heading Font</SubLabel>
-                        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold' }}>{d.typography.headingFont}</Text>
+                        <SubLabel brandColor={bc} fontFamily={bf}>Heading Font</SubLabel>
+                        <Text style={{ fontSize: 18, fontFamily: hf, fontWeight: 700 }}>{d.typography.headingFont}</Text>
                     </View>
                     <View style={{ flex: 1, padding: 16, backgroundColor: '#FAFAFA', borderRadius: 6 }}>
-                        <SubLabel brandColor={bc}>Body Font</SubLabel>
-                        <Text style={{ fontSize: 18 }}>{d.typography.bodyFont}</Text>
+                        <SubLabel brandColor={bc} fontFamily={bf}>Body Font</SubLabel>
+                        <Text style={{ fontSize: 18, fontFamily: bf }}>{d.typography.bodyFont}</Text>
                     </View>
                 </View>
 
-                <SubLabel brandColor={bc}>Type Scale</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Type Scale</SubLabel>
                 {d.typography.scale.map((level) => (
                     <View key={level.name} style={s.typeRow}>
                         <Text style={s.typeName}>{level.name}</Text>
@@ -426,14 +444,14 @@ export default function DesignSystemPDF({ data }: Props) {
             </Page>
 
             {/* ─── Spacing & Layout ─── */}
-            <Page size="A4" style={s.page}>
-                <SectionHeader brandColor={bc}>03 — Spacing & Layout</SectionHeader>
-                <Text style={s.sectionTitle}>Spatial System</Text>
+            <Page size="A4" style={[s.page, { fontFamily: bf }]}>
+                <SectionHeader brandColor={bc} fontFamily={bf}>03 — Spacing & Layout</SectionHeader>
+                <Text style={[s.sectionTitle, { fontFamily: hf }]}>Spatial System</Text>
                 <Text style={s.sectionBody}>
                     Built on a {d.spacing.baseUnit}px base unit. All spacings are multiples of this unit for consistent rhythm.
                 </Text>
 
-                <SubLabel brandColor={bc}>Spacing Scale</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Spacing Scale</SubLabel>
                 {d.spacing.scale.map((sp) => (
                     <View key={sp.name} style={s.spacingRow}>
                         <Text style={s.spacingLabel}>{sp.name}</Text>
@@ -449,7 +467,7 @@ export default function DesignSystemPDF({ data }: Props) {
                     </View>
                 ))}
 
-                <SubLabel brandColor={bc}>Border Radius</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Border Radius</SubLabel>
                 <View style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
                     {d.spacing.borderRadius.map((r) => (
                         <View key={r.name} style={{ alignItems: 'center', gap: 4 }}>
@@ -466,10 +484,10 @@ export default function DesignSystemPDF({ data }: Props) {
                     ))}
                 </View>
 
-                <SubLabel brandColor={bc}>Shadows</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Shadows</SubLabel>
                 {d.spacing.shadows.map((sh) => (
                     <View key={sh.name} style={{ marginBottom: 8 }}>
-                        <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold' }}>{sh.name}</Text>
+                        <Text style={{ fontSize: 9, fontWeight: 700 }}>{sh.name}</Text>
                         <Text style={{ fontSize: 8, color: gray }}>{sh.value}</Text>
                         <Text style={{ fontSize: 8, color: gray }}>{sh.usage}</Text>
                     </View>
@@ -480,23 +498,23 @@ export default function DesignSystemPDF({ data }: Props) {
 
             {/* ─── Logo Guidelines (non-logo page) ─── */}
             {!d.generatedLogoUrl && (
-                <Page size="A4" style={s.page}>
-                    <SectionHeader brandColor={bc}>04 — Logo</SectionHeader>
-                    <Text style={s.sectionTitle}>Logo Guidelines</Text>
+                <Page size="A4" style={[s.page, { fontFamily: bf }]}>
+                    <SectionHeader brandColor={bc} fontFamily={bf}>04 — Logo</SectionHeader>
+                    <Text style={[s.sectionTitle, { fontFamily: hf }]}>Logo Guidelines</Text>
                     <Text style={s.sectionBody}>{d.logoGuidelines.description}</Text>
 
                     <View style={{ flexDirection: 'row', gap: 24, marginBottom: 24 }}>
                         <View style={{ flex: 1 }}>
-                            <SubLabel brandColor={bc}>Clear Space</SubLabel>
+                            <SubLabel brandColor={bc} fontFamily={bf}>Clear Space</SubLabel>
                             <ListItem>{d.logoGuidelines.clearSpaceRule}</ListItem>
                         </View>
                         <View style={{ flex: 1 }}>
-                            <SubLabel brandColor={bc}>Minimum Size</SubLabel>
+                            <SubLabel brandColor={bc} fontFamily={bf}>Minimum Size</SubLabel>
                             <ListItem>{d.logoGuidelines.minimumSize}</ListItem>
                         </View>
                     </View>
 
-                    <SubLabel brandColor={bc} color="#D9534F">Incorrect Usage</SubLabel>
+                    <SubLabel brandColor={bc} color="#D9534F" fontFamily={bf}>Incorrect Usage</SubLabel>
                     {d.logoGuidelines.donts.map((dont, i) => (
                         <ListItem key={i}>{dont}</ListItem>
                     ))}
@@ -506,25 +524,25 @@ export default function DesignSystemPDF({ data }: Props) {
             )}
 
             {/* ─── Brand Voice ─── */}
-            <Page size="A4" style={s.page}>
-                <SectionHeader brandColor={bc}>05 — Brand Voice</SectionHeader>
-                <Text style={s.sectionTitle}>Voice & Tone</Text>
+            <Page size="A4" style={[s.page, { fontFamily: bf }]}>
+                <SectionHeader brandColor={bc} fontFamily={bf}>05 — Brand Voice</SectionHeader>
+                <Text style={[s.sectionTitle, { fontFamily: hf }]}>Voice & Tone</Text>
                 <Text style={s.sectionBody}>{d.brandVoice.personality}</Text>
 
-                <SubLabel brandColor={bc}>Tone Attributes</SubLabel>
+                <SubLabel brandColor={bc} fontFamily={bf}>Tone Attributes</SubLabel>
                 <Text style={{ fontSize: 9, lineHeight: 1.6, color: gray, marginBottom: 16 }}>
                     {d.brandVoice.toneAttributes.join('  /  ')}
                 </Text>
 
                 <View style={{ flexDirection: 'row', gap: 24, marginBottom: 24 }}>
                     <View style={{ flex: 1 }}>
-                        <SubLabel brandColor={bc} color="#5CB85C">Do</SubLabel>
+                        <SubLabel brandColor={bc} color="#5CB85C" fontFamily={bf}>Do</SubLabel>
                         {d.brandVoice.dos.map((item, i) => (
                             <ListItem key={i}>{item}</ListItem>
                         ))}
                     </View>
                     <View style={{ flex: 1 }}>
-                        <SubLabel brandColor={bc} color="#D9534F">Don&apos;t</SubLabel>
+                        <SubLabel brandColor={bc} color="#D9534F" fontFamily={bf}>Don&apos;t</SubLabel>
                         {d.brandVoice.donts.map((item, i) => (
                             <ListItem key={i}>{item}</ListItem>
                         ))}
@@ -532,14 +550,14 @@ export default function DesignSystemPDF({ data }: Props) {
                 </View>
 
                 <View style={{ padding: 20, backgroundColor: '#FAFAFA', borderRadius: 6, marginBottom: 16 }}>
-                    <SubLabel brandColor={bc}>Sample Headline</SubLabel>
-                    <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', lineHeight: 1.4 }}>
+                    <SubLabel brandColor={bc} fontFamily={bf}>Sample Headline</SubLabel>
+                    <Text style={{ fontSize: 16, fontFamily: hf, fontWeight: 700, lineHeight: 1.4 }}>
                         &ldquo;{d.brandVoice.sampleHeadline}&rdquo;
                     </Text>
                 </View>
 
                 <View style={{ padding: 20, backgroundColor: '#FAFAFA', borderRadius: 6 }}>
-                    <SubLabel brandColor={bc}>Sample Body</SubLabel>
+                    <SubLabel brandColor={bc} fontFamily={bf}>Sample Body</SubLabel>
                     <Text style={{ fontSize: 10, lineHeight: 1.7, color: gray }}>
                         {d.brandVoice.sampleBodyCopy}
                     </Text>

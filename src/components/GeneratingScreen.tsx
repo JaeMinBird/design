@@ -63,7 +63,7 @@ export default function GeneratingScreen() {
 
         const cx = width / 2;
         const cy = height / 2;
-        const ringR = 70; // ring radius
+        const ringR = 95; // ring radius
 
         // Create particles distributed around the ring
         const particles: Particle[] = [];
@@ -232,7 +232,7 @@ export default function GeneratingScreen() {
                                     width: 4,
                                     height: 4,
                                     borderRadius: '50%',
-                                    background: 'var(--ink-faint)',
+                                    background: 'var(--blue)',
                                     animationDelay: `${i * 0.4}s`,
                                 }}
                             />

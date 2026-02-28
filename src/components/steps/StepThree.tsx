@@ -31,7 +31,7 @@ const PREVIEW_FONTS: Record<string, string> = {
 export default function StepThree({ data, onChange }: StepThreeProps) {
     // Density: -50 to +50 (mapped from 0-100 storage)
     const densityValue = data.designDensity - 50;
-    const densityLabel = densityValue === 0 ? 'Balanced' : densityValue > 0 ? `+${densityValue}` : `${densityValue}`;
+    const densityLabel = densityValue === 0 ? 'Balanced' : densityValue > 0 ? `+${densityValue}` : String(densityValue);
 
     return (
         <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -168,7 +168,7 @@ export default function StepThree({ data, onChange }: StepThreeProps) {
             <div>
                 <label className="wire-label">Design Density</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ position: 'relative', padding: '0 12px' }}>
+                    <div style={{ position: 'relative', padding: '0 18px' }}>
                         <input
                             type="range"
                             min={0}
@@ -189,12 +189,12 @@ export default function StepThree({ data, onChange }: StepThreeProps) {
                             pointerEvents: 'none',
                         }} />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-faint)', fontFamily: 'var(--font-mono)', padding: '0 12px' }}>
-                        <span>− Minimal</span>
-                        <span style={{ color: 'var(--ink-light)', fontWeight: 700, fontSize: 11 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--ink-faint)', fontFamily: 'var(--font-mono)', padding: '0 18px' }}>
+                        <span style={{ flex: '1', textAlign: 'left' }}>− Minimal</span>
+                        <span style={{ flex: '1', textAlign: 'center', color: 'var(--ink-light)', fontWeight: 700, fontSize: 11 }}>
                             {densityLabel}
                         </span>
-                        <span>Detailed +</span>
+                        <span style={{ flex: '1', textAlign: 'right' }}>Detailed +</span>
                     </div>
                 </div>
             </div>

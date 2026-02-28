@@ -91,36 +91,6 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
         >
             {/* Header */}
             <div style={{ textAlign: 'center' }}>
-                {ds.generatedLogoUrl ? (
-                    <div style={{ marginBottom: 16 }}>
-                        <img
-                            src={ds.generatedLogoUrl}
-                            alt={`${ds.brandName} logo`}
-                            style={{
-                                width: 56,
-                                height: 56,
-                                objectFit: 'contain',
-                                borderRadius: 'var(--radius-md)',
-                            }}
-                        />
-                    </div>
-                ) : (
-                    <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 48,
-                        height: 48,
-                        borderRadius: '50%',
-                        border: `1.5px solid ${brandColor}`,
-                        marginBottom: 16,
-                        color: brandColor,
-                        fontSize: 20,
-                        fontFamily: 'var(--font-serif)',
-                    }}>
-                        {ds.brandName.charAt(0)}
-                    </div>
-                )}
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 32, margin: '0 0 4px' }}>{ds.brandName}</h2>
                 <p style={{ color: 'var(--ink-light)', fontSize: 14, margin: '0 0 4px', fontStyle: 'italic', fontFamily: 'var(--font-serif)' }}>
                     {ds.tagline}
@@ -348,61 +318,34 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                 {/* Logo */}
                 {activeSection === 'logo' && (
                     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: 24 }}>
-                            {/* Left: Logo previews (40%) */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {/* Top: Logo + Description side by side */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                            {/* Left: Logo preview */}
+                            <div>
                                 {ds.generatedLogoUrl ? (
-                                    <>
-                                        <div style={{
-                                            padding: 32,
-                                            background: 'white',
-                                            borderRadius: 'var(--radius-md)',
-                                            border: '1px solid var(--stroke-light)',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            gap: 8,
-                                        }}>
-                                            <img src={ds.generatedLogoUrl} alt="Logo on light" style={{ maxHeight: 80, objectFit: 'contain' }} />
-                                            <span style={{ fontSize: 10, color: 'var(--ink-faint)', fontFamily: 'var(--font-mono)' }}>Light</span>
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                            <div style={{
-                                                padding: 20,
-                                                background: '#1a1a1a',
-                                                borderRadius: 'var(--radius-md)',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                gap: 6,
-                                            }}>
-                                                <img src={ds.generatedLogoUrl} alt="Logo on dark" style={{ maxHeight: 48, objectFit: 'contain' }} />
-                                                <span style={{ fontSize: 9, color: '#888', fontFamily: 'var(--font-mono)' }}>Dark</span>
-                                            </div>
-                                            <div style={{
-                                                padding: 20,
-                                                background: brandColor,
-                                                borderRadius: 'var(--radius-md)',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                gap: 6,
-                                            }}>
-                                                <img src={ds.generatedLogoUrl} alt="Logo on brand" style={{ maxHeight: 48, objectFit: 'contain' }} />
-                                                <span style={{ fontSize: 9, color: isLight(brandColor) ? '#2C2C2C' : '#FFFFFF', fontFamily: 'var(--font-mono)', opacity: 0.7 }}>Brand</span>
-                                            </div>
-                                        </div>
-                                    </>
+                                    <div style={{
+                                        aspectRatio: '1',
+                                        background: 'white',
+                                        borderRadius: 'var(--radius-md)',
+                                        border: '1px solid var(--stroke-light)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 8,
+                                    }}>
+                                        <img src={ds.generatedLogoUrl} alt="Logo on light" style={{ maxWidth: '60%', maxHeight: '60%', objectFit: 'contain' }} />
+                                        <span style={{ fontSize: 10, color: 'var(--ink-faint)', fontFamily: 'var(--font-mono)' }}>Light</span>
+                                    </div>
                                 ) : (
                                     <div style={{
-                                        padding: 32,
+                                        aspectRatio: '1',
                                         background: 'white',
                                         borderRadius: 'var(--radius-md)',
                                         border: '1px dashed var(--stroke)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        minHeight: 160,
                                         color: 'var(--ink-faint)',
                                         fontSize: 12,
                                         fontFamily: 'var(--font-mono)',
@@ -412,30 +355,60 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
                                 )}
                             </div>
 
-                            {/* Right: Description & Guidelines (60%) */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                <div>
-                                    <label className="wire-label">Description</label>
-                                    <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7 }}>{ds.logoGuidelines.description}</p>
-                                </div>
+                            {/* Right: Description */}
+                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                <label className="wire-label">Description</label>
+                                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7 }}>{ds.logoGuidelines.description}</p>
+                            </div>
+                        </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12 }}>
-                                    <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)' }}>
-                                        <strong style={{ fontSize: 10, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Clear Space</strong>
-                                        <p style={{ margin: '4px 0 0', color: 'var(--ink-light)' }}>{ds.logoGuidelines.clearSpaceRule}</p>
-                                    </div>
-                                    <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)' }}>
-                                        <strong style={{ fontSize: 10, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Min Size</strong>
-                                        <p style={{ margin: '4px 0 0', color: 'var(--ink-light)' }}>{ds.logoGuidelines.minimumSize}</p>
-                                    </div>
+                        {/* Logo on dark & brand backgrounds */}
+                        {ds.generatedLogoUrl && (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div style={{
+                                    padding: 20,
+                                    background: '#1a1a1a',
+                                    borderRadius: 'var(--radius-md)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                }}>
+                                    <img src={ds.generatedLogoUrl} alt="Logo on dark" style={{ maxHeight: 48, objectFit: 'contain' }} />
+                                    <span style={{ fontSize: 9, color: '#888', fontFamily: 'var(--font-mono)' }}>Dark</span>
                                 </div>
+                                <div style={{
+                                    padding: 20,
+                                    background: brandColor,
+                                    borderRadius: 'var(--radius-md)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                }}>
+                                    <img src={ds.generatedLogoUrl} alt="Logo on brand" style={{ maxHeight: 48, objectFit: 'contain' }} />
+                                    <span style={{ fontSize: 9, color: isLight(brandColor) ? '#2C2C2C' : '#FFFFFF', fontFamily: 'var(--font-mono)', opacity: 0.7 }}>Brand</span>
+                                </div>
+                            </div>
+                        )}
 
-                                <div>
-                                    <label className="wire-label" style={{ color: 'var(--red)' }}>Incorrect Usage</label>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--ink-light)' }}>
-                                        {ds.logoGuidelines.donts.map((d, i) => <p key={i} style={{ margin: 0 }}>{d}</p>)}
-                                    </div>
-                                </div>
+                        {/* Clear Space */}
+                        <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)', fontSize: 12 }}>
+                            <strong style={{ fontSize: 10, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Clear Space</strong>
+                            <p style={{ margin: '4px 0 0', color: 'var(--ink-light)' }}>{ds.logoGuidelines.clearSpaceRule}</p>
+                        </div>
+
+                        {/* Min Size */}
+                        <div style={{ padding: 12, background: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid var(--stroke-light)', fontSize: 12 }}>
+                            <strong style={{ fontSize: 10, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Min Size</strong>
+                            <p style={{ margin: '4px 0 0', color: 'var(--ink-light)' }}>{ds.logoGuidelines.minimumSize}</p>
+                        </div>
+
+                        {/* Incorrect Usage */}
+                        <div>
+                            <label className="wire-label" style={{ color: 'var(--red)' }}>Incorrect Usage</label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--ink-light)' }}>
+                                {ds.logoGuidelines.donts.map((d, i) => <p key={i} style={{ margin: 0 }}>{d}</p>)}
                             </div>
                         </div>
                     </div>
