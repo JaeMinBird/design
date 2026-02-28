@@ -8,6 +8,7 @@ export interface WizardState {
   primaryColor: string | null; // hex string or null
 
   // Step 2 — Brand Identity
+  companyDescription: string;
   adjectives: string[];
   targetAudience: string;
 
@@ -22,6 +23,7 @@ export const DEFAULT_WIZARD_STATE: WizardState = {
   industry: '',
   logo: null,
   primaryColor: null,
+  companyDescription: '',
   adjectives: [],
   targetAudience: '',
   colorMood: '',

@@ -12,7 +12,7 @@ interface StepTwoProps {
 
 /**
  * Step 2 — Brand Identity
- * Select 3-5 brand adjectives and describe the target audience.
+ * Company mission description, 3-5 brand adjective pills, target audience.
  */
 export default function StepTwo({ data, onChange }: StepTwoProps) {
     const toggleAdjective = (value: string) => {
@@ -25,7 +25,7 @@ export default function StepTwo({ data, onChange }: StepTwoProps) {
     };
 
     return (
-        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
             {/* Header */}
             <div style={{ textAlign: 'center' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', border: '1.5px solid var(--blue)', marginBottom: 16 }}>
@@ -37,7 +37,20 @@ export default function StepTwo({ data, onChange }: StepTwoProps) {
                 </p>
             </div>
 
-            {/* Adjective Tags */}
+            {/* Company Description */}
+            <div>
+                <label className="wire-label">Company Mission</label>
+                <textarea
+                    className="wire-input wire-textarea"
+                    placeholder="Briefly describe your company's mission and what you do..."
+                    value={data.companyDescription}
+                    onChange={(e) => onChange({ companyDescription: e.target.value })}
+                    rows={2}
+                    style={{ minHeight: 64 }}
+                />
+            </div>
+
+            {/* Adjective Tags — dot space pre-allocated */}
             <div>
                 <label className="wire-label">
                     Brand Personality * &nbsp;
@@ -57,11 +70,18 @@ export default function StepTwo({ data, onChange }: StepTwoProps) {
                                 style={{
                                     opacity: disabled ? 0.4 : 1,
                                     cursor: disabled ? 'not-allowed' : 'pointer',
+                                    paddingLeft: 12,
                                 }}
                             >
-                                {selected && (
-                                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--blue)', display: 'inline-block' }} />
-                                )}
+                                {/* Pre-allocated dot space — always present, invisible when not selected */}
+                                <span style={{
+                                    width: 6,
+                                    height: 6,
+                                    borderRadius: '50%',
+                                    background: selected ? 'var(--blue)' : 'transparent',
+                                    display: 'inline-block',
+                                    flexShrink: 0,
+                                }} />
                                 {adj.label}
                             </button>
                         );
@@ -69,9 +89,7 @@ export default function StepTwo({ data, onChange }: StepTwoProps) {
                 </div>
             </div>
 
-            <hr className="wire-divider" />
-
-            {/* Target Audience */}
+            {/* Target Audience — reduced gap from personality */}
             <div>
                 <label className="wire-label">Target Audience *</label>
                 <textarea

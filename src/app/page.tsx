@@ -297,20 +297,7 @@ export default function Home() {
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer
-        style={{
-          marginTop: 'auto',
-          paddingTop: 48,
-          textAlign: 'center',
-          fontSize: 11,
-          color: 'var(--ink-faint)',
-          fontFamily: 'var(--font-mono)',
-        }}
-      >
-        powered by gemini · built with next.js
-      </footer>
     </div>
   );
 }
+

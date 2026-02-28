@@ -81,16 +81,4 @@ export const COLOR_MOODS: MoodOption[] = [
         description: 'Deep backgrounds with bright accents',
         colors: ['#1A1A2E', '#16213E', '#0F3460', '#E94560', '#533483'],
     },
-    {
-        id: 'warm',
-        label: 'Warm',
-        description: 'Reds, oranges, and golden tones',
-        colors: ['#FF6F61', '#FFB347', '#FF8C42', '#FFA07A', '#E25822'],
-    },
-    {
-        id: 'cool',
-        label: 'Cool',
-        description: 'Blues, teals, and icy tones',
-        colors: ['#6AABDB', '#48A9A6', '#4B8BBE', '#7EC8E3', '#3D5A80'],
-    },
 ];

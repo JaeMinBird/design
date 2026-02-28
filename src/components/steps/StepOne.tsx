@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { Building, Upload, X } from '../Icons';
 import { INDUSTRIES } from '@/lib/constants';
@@ -13,9 +13,32 @@ interface StepOneProps {
 
 /**
  * Step 1 — Company Info
- * Company name, industry, optional logo upload, optional primary color.
+ * Company name, industry (seamless dropdown), logo upload (square), primary color picker.
  */
 export default function StepOne({ data, onChange }: StepOneProps) {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const colorRef = useRef<HTMLDivElement>(null);
+    const [colorHeight, setColorHeight] = useState(0);
+
+    // Measure the color picker column height for square logo upload
+    useEffect(() => {
+        if (colorRef.current) {
+            setColorHeight(colorRef.current.offsetHeight);
+        }
+    }, [data.primaryColor]);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
     const handleLogoDrop = useCallback(
         (e: React.DragEvent) => {
             e.preventDefault();
@@ -40,6 +63,8 @@ export default function StepOne({ data, onChange }: StepOneProps) {
         },
         [onChange]
     );
+
+    const selectedIndustry = INDUSTRIES.find((i) => i.value === data.industry);
 
     return (
         <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -66,52 +91,111 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                 />
             </div>
 
-            {/* Industry */}
-            <div>
+            {/* Industry — seamless dropdown that extends from the input bar */}
+            <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <label className="wire-label">Industry *</label>
-                <div style={{ position: 'relative' }}>
-                    <select
-                        className="wire-input"
-                        value={data.industry}
-                        onChange={(e) => onChange({ industry: e.target.value })}
-                        style={{ appearance: 'none', paddingRight: 40, cursor: 'pointer' }}
-                    >
-                        <option value="">Select an industry...</option>
-                        {INDUSTRIES.map((ind) => (
-                            <option key={ind.value} value={ind.value}>
-                                {ind.label}
-                            </option>
-                        ))}
-                    </select>
-                    <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--ink-faint)' }}>
+                <button
+                    type="button"
+                    className="wire-input"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    style={{
+                        appearance: 'none',
+                        paddingRight: 40,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        width: '100%',
+                        color: selectedIndustry ? 'var(--ink)' : 'var(--ink-faint)',
+                        borderColor: dropdownOpen ? 'var(--blue)' : undefined,
+                        boxShadow: dropdownOpen ? '0 0 0 3px rgba(106, 171, 219, 0.12)' : undefined,
+                        transition: 'border-color 0.15s, box-shadow 0.15s',
+                    }}
+                >
+                    {selectedIndustry ? selectedIndustry.label : 'Select an industry...'}
+                    <span style={{ position: 'absolute', right: 16, color: 'var(--ink-faint)', transition: 'transform 0.2s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0)' }}>
                         ↓
+                    </span>
+                </button>
+
+                {dropdownOpen && (
+                    <div
+                        className="dropdown-menu-scroll"
+                        style={{
+                            position: 'absolute',
+                            top: 'calc(100% + 4px)',
+                            left: 0,
+                            right: 0,
+                            background: 'white',
+                            border: '1.5px solid var(--blue)',
+                            borderRadius: 'var(--radius-md)',
+                            maxHeight: 240,
+                            overflowY: 'auto',
+                            zIndex: 20,
+                            boxShadow: '0 0 0 3px rgba(106, 171, 219, 0.12), 0 8px 24px rgba(0,0,0,0.08)',
+                        }}
+                    >
+                        {INDUSTRIES.map((ind) => (
+                            <button
+                                key={ind.value}
+                                type="button"
+                                onClick={() => {
+                                    onChange({ industry: ind.value });
+                                    setDropdownOpen(false);
+                                }}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 18px',
+                                    border: 'none',
+                                    background: data.industry === ind.value ? 'var(--blue-faint)' : 'transparent',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    fontFamily: 'var(--font-mono)',
+                                    fontSize: 13,
+                                    color: data.industry === ind.value ? 'var(--blue-dark)' : 'var(--ink)',
+                                    transition: 'background 0.1s',
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (data.industry !== ind.value) {
+                                        (e.target as HTMLElement).style.background = '#f8f8f8';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (data.industry !== ind.value) {
+                                        (e.target as HTMLElement).style.background = 'transparent';
+                                    }
+                                }}
+                            >
+                                {ind.label}
+                            </button>
+                        ))}
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Two column: Logo + Color */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                {/* Logo Upload */}
+                {/* Logo Upload — square, matching color picker height */}
                 <div>
                     <label className="wire-label">Logo (optional)</label>
                     {data.logo ? (
                         <div
                             style={{
                                 position: 'relative',
-                                padding: 24,
                                 border: '1.5px solid var(--stroke)',
                                 borderRadius: 'var(--radius-lg)',
                                 background: 'white',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                minHeight: 140,
+                                height: colorHeight || 244,
+                                aspectRatio: '1',
                             }}
                         >
                             <img
                                 src={data.logo}
                                 alt="Logo preview"
-                                style={{ maxWidth: '100%', maxHeight: 100, objectFit: 'contain' }}
+                                style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }}
                             />
                             <button
                                 onClick={() => onChange({ logo: null })}
@@ -139,7 +223,11 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                             className="wire-upload"
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={handleLogoDrop}
-                            style={{ minHeight: 140, cursor: 'pointer' }}
+                            style={{
+                                height: colorHeight || 244,
+                                aspectRatio: '1',
+                                cursor: 'pointer',
+                            }}
                         >
                             <Upload size={24} />
                             <span style={{ fontSize: 12, color: 'var(--ink-light)' }}>
@@ -159,7 +247,7 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                 </div>
 
                 {/* Primary Color */}
-                <div>
+                <div ref={colorRef}>
                     <label className="wire-label">Primary Color (optional)</label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         <HexColorPicker

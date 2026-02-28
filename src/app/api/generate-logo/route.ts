@@ -29,10 +29,10 @@ Design requirements:
 - Style: clean vector-like minimal icon`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.1-flash-image-preview',
             contents: prompt,
             config: {
-                responseModalities: ['image', 'text'],
+                responseModalities: ['TEXT', 'IMAGE'],
             },
         });
 
