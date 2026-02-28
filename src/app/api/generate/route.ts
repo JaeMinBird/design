@@ -3,6 +3,41 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { WizardState, DesignSystemOutput } from '@/lib/types';
 import { formatHarmonyOptionsForPrompt } from '@/lib/colors';
 
+const MAX_RETRIES = 3;
+const BASE_DELAY_MS = 4000;
+
+async function callWithRetry(
+  ai: GoogleGenAI,
+  model: string,
+  contents: string,
+  config: Record<string, unknown>,
+): Promise<string> {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await ai.models.generateContent({ model, contents, config });
+      return response.text ?? '';
+    } catch (err: unknown) {
+      const isRateLimit =
+        err instanceof Error &&
+        (err.message.includes('429') || err.message.includes('RESOURCE_EXHAUSTED'));
+
+      if (isRateLimit && attempt < MAX_RETRIES) {
+        const delay = BASE_DELAY_MS * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+
+      if (isRateLimit) {
+        throw new Error(
+          'API rate limit reached. The free tier allows ~20 requests/day. Please wait a few minutes or check your Gemini billing plan.'
+        );
+      }
+      throw err;
+    }
+  }
+  throw new Error('Generation failed after retries');
+}
+
 /**
  * POST /api/generate
  *
@@ -81,15 +116,12 @@ Return ONLY a JSON object with this exact structure:
   }
 }`;
 
-    const colorResponse = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: colorPrompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const colorText = colorResponse.text ?? '';
+    const colorText = await callWithRetry(
+      ai,
+      'gemini-3-flash-preview',
+      colorPrompt,
+      { responseMimeType: 'application/json' },
+    );
     let colorPalette;
     try {
       colorPalette = JSON.parse(colorText);
@@ -191,15 +223,12 @@ Generate the COMPLETE design system as a JSON object with this EXACT structure. 
 
 CRITICAL: Copy the DECIDED COLOR PALETTE values exactly into the colors object. Do not invent new colors. Return ONLY JSON.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: systemPrompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const text = response.text ?? '';
+    const text = await callWithRetry(
+      ai,
+      'gemini-3-flash-preview',
+      systemPrompt,
+      { responseMimeType: 'application/json' },
+    );
 
     let designSystem: DesignSystemOutput;
     try {
