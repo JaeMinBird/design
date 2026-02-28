@@ -16,8 +16,8 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Design System Generator",
-  description: "Generate a comprehensive brand design system using AI. Built with Gemini.",
+  title: "Ideate",
+  description: "Generate a comprehensive brand design system using AI.",
 };
 
 export default function RootLayout({

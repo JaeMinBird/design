@@ -12,22 +12,9 @@ interface StepOneProps {
     onChange: (updates: Partial<WizardState>) => void;
 }
 
-/**
- * Step 1 — Company Info
- * Company name, industry (seamless dropdown), logo upload (square), primary color picker.
- */
 export default function StepOne({ data, onChange }: StepOneProps) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const colorRef = useRef<HTMLDivElement>(null);
-    const [colorHeight, setColorHeight] = useState(0);
-
-    // Measure the color picker column height for square logo upload
-    useEffect(() => {
-        if (colorRef.current) {
-            setColorHeight(colorRef.current.offsetHeight);
-        }
-    }, [data.primaryColor]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -92,9 +79,11 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                 />
             </div>
 
-            {/* Industry — dropdown slides down from behind the pill button */}
+            {/* Industry — pill stays fixed, list slides out beneath */}
             <div ref={dropdownRef} style={{ position: 'relative', zIndex: 20 }}>
                 <label className="wire-label">Industry *</label>
+
+                {/* Pill trigger — never changes shape */}
                 <button
                     type="button"
                     className="wire-input"
@@ -127,19 +116,17 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                     </span>
                 </button>
 
-                <AnimatePresence>
+                {/* List — slides out from behind the pill */}
+                <AnimatePresence initial={false}>
                     {dropdownOpen && (
                         <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{
-                                height: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-                                opacity: { duration: 0.2, ease: 'easeOut' },
-                            }}
+                            initial={{ height: 0 }}
+                            animate={{ height: 'auto' }}
+                            exit={{ height: 0 }}
+                            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                             style={{
                                 position: 'absolute',
-                                top: 'calc(100% - 20px)',
+                                top: '50%',
                                 left: 0,
                                 right: 0,
                                 zIndex: 1,
@@ -151,11 +138,12 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                                 style={{
                                     background: 'white',
                                     border: '1.5px solid var(--blue)',
+                                    borderTop: 'none',
                                     borderRadius: '0 0 var(--radius-md) var(--radius-md)',
-                                    maxHeight: 240,
-                                    overflowY: 'auto',
-                                    paddingTop: 20,
                                     boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                                    maxHeight: 260,
+                                    overflowY: 'auto',
+                                    paddingTop: 28,
                                 }}
                             >
                                 {INDUSTRIES.map((ind) => (
@@ -199,8 +187,8 @@ export default function StepOne({ data, onChange }: StepOneProps) {
             </div>
 
             {/* Two column: Logo + Color */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                {/* Logo Upload — square, matching color picker height */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+                {/* Logo Upload — fixed height */}
                 <div>
                     <label className="wire-label">Logo (optional)</label>
                     {data.logo ? (
@@ -213,8 +201,7 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                height: colorHeight || 244,
-                                aspectRatio: '1',
+                                height: 244,
                             }}
                         >
                             <img
@@ -249,8 +236,7 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={handleLogoDrop}
                             style={{
-                                height: colorHeight || 244,
-                                aspectRatio: '1',
+                                height: 244,
                                 cursor: 'pointer',
                             }}
                         >
@@ -272,7 +258,7 @@ export default function StepOne({ data, onChange }: StepOneProps) {
                 </div>
 
                 {/* Primary Color */}
-                <div ref={colorRef}>
+                <div>
                     <label className="wire-label">Primary Color (optional)</label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         <HexColorPicker

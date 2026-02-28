@@ -18,6 +18,7 @@ const PDFDownloadButton = dynamic<{ designSystem: DesignSystemOutput }>(
 interface ResultsViewProps {
     designSystem: DesignSystemOutput;
     onStartOver: () => void;
+    companyName?: string;
 }
 
 /**
@@ -25,7 +26,7 @@ interface ResultsViewProps {
  * Uses the brand's primary color as the accent throughout,
  * replacing our app's default blue for a realistic preview.
  */
-export default function ResultsView({ designSystem, onStartOver }: ResultsViewProps) {
+export default function ResultsView({ designSystem, onStartOver, companyName }: ResultsViewProps) {
     const [activeSection, setActiveSection] = useState('overview');
     const ds = designSystem;
     const brandColor = ds.colors.primary.hex;
@@ -91,7 +92,7 @@ export default function ResultsView({ designSystem, onStartOver }: ResultsViewPr
         >
             {/* Header */}
             <div style={{ textAlign: 'center' }}>
-                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 32, margin: '0 0 4px' }}>{ds.brandName}</h2>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 32, margin: '0 0 4px' }}>{companyName || ds.brandName}</h2>
                 <p style={{ color: 'var(--ink-light)', fontSize: 14, margin: '0 0 4px', fontStyle: 'italic', fontFamily: 'var(--font-serif)' }}>
                     {ds.tagline}
                 </p>

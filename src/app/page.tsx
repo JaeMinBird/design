@@ -167,7 +167,7 @@ export default function Home() {
               color: 'var(--ink)',
             }}
           >
-            Design System Generator
+            Ideate
           </span>
         </div>
         {phase === 'wizard' && (
@@ -180,7 +180,7 @@ export default function Home() {
               fontStyle: 'italic',
             }}
           >
-            Create a complete brand system in minutes.
+            Design systems, realized in minutes.
           </p>
         )}
       </header>
@@ -263,7 +263,7 @@ export default function Home() {
 
         {/* Results */}
         {phase === 'results' && result && (
-          <ResultsView designSystem={result} onStartOver={handleStartOver} />
+          <ResultsView designSystem={result} onStartOver={handleStartOver} companyName={data.companyName} />
         )}
 
         {/* Error */}

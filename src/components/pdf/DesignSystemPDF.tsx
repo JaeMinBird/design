@@ -29,17 +29,19 @@ Font.registerHyphenationCallback(word => [word]);
 
 const registeredFonts = new Set<string>();
 
+/**
+ * Register a Google Font for PDF rendering via the fontsource CDN.
+ * Only registers weight 400 (universally available for all Google Fonts).
+ * Display fonts like DM Serif Display only ship weight 400, so requesting
+ * 600/700 would 404 and crash the PDF renderer.
+ */
 function registerGoogleFont(fontFamily: string) {
     if (registeredFonts.has(fontFamily)) return;
     const fontId = fontFamily.toLowerCase().replace(/\s+/g, '-');
     const base = `https://cdn.jsdelivr.net/fontsource/fonts/${fontId}@latest/latin`;
     Font.register({
         family: fontFamily,
-        fonts: [
-            { src: `${base}-400-normal.woff2`, fontWeight: 400 },
-            { src: `${base}-600-normal.woff2`, fontWeight: 600 },
-            { src: `${base}-700-normal.woff2`, fontWeight: 700 },
-        ],
+        src: `${base}-400-normal.ttf`,
     });
     registeredFonts.add(fontFamily);
 }
@@ -70,7 +72,6 @@ const s = StyleSheet.create({
         letterSpacing: -1,
         marginBottom: 12,
         color: ink,
-        fontWeight: 700,
     },
     coverTagline: {
         fontSize: 14,
@@ -85,7 +86,6 @@ const s = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 24,
-        fontWeight: 700,
         marginBottom: 16,
         color: ink,
     },
@@ -111,7 +111,6 @@ const s = StyleSheet.create({
     },
     swatchName: {
         fontSize: 7,
-        fontWeight: 700,
         marginBottom: 2,
     },
     swatchHex: {
@@ -127,7 +126,6 @@ const s = StyleSheet.create({
     },
     typeName: {
         width: 80,
-        fontWeight: 700,
         fontSize: 9,
     },
     typeSpec: {
@@ -222,7 +220,6 @@ function SectionHeader({ children, brandColor, fontFamily }: { children: string;
             letterSpacing: 3,
             marginBottom: 6,
             fontFamily: fontFamily,
-            fontWeight: 700,
         }}>
             {children}
         </Text>
@@ -238,7 +235,6 @@ function SubLabel({ children, brandColor, color, fontFamily }: { children: strin
             textTransform: 'uppercase',
             letterSpacing: 1.5,
             fontFamily: fontFamily,
-            fontWeight: 700,
             marginBottom: 4,
             marginTop: 12,
         }}>
@@ -282,7 +278,7 @@ export default function DesignSystemPDF({ data }: Props) {
     return (
         <Document
             title={`${d.brandName} Design System`}
-            author="Design System Generator"
+            author="Ideate"
             subject="Brand Design System"
         >
             {/* ─── Cover ─── */}
@@ -423,7 +419,7 @@ export default function DesignSystemPDF({ data }: Props) {
                 <View style={{ flexDirection: 'row', gap: 24, marginBottom: 24 }}>
                     <View style={{ flex: 1, padding: 16, backgroundColor: '#FAFAFA', borderRadius: 6 }}>
                         <SubLabel brandColor={bc} fontFamily={bf}>Heading Font</SubLabel>
-                        <Text style={{ fontSize: 18, fontFamily: hf, fontWeight: 700 }}>{d.typography.headingFont}</Text>
+                        <Text style={{ fontSize: 18, fontFamily: hf }}>{d.typography.headingFont}</Text>
                     </View>
                     <View style={{ flex: 1, padding: 16, backgroundColor: '#FAFAFA', borderRadius: 6 }}>
                         <SubLabel brandColor={bc} fontFamily={bf}>Body Font</SubLabel>
@@ -487,7 +483,7 @@ export default function DesignSystemPDF({ data }: Props) {
                 <SubLabel brandColor={bc} fontFamily={bf}>Shadows</SubLabel>
                 {d.spacing.shadows.map((sh) => (
                     <View key={sh.name} style={{ marginBottom: 8 }}>
-                        <Text style={{ fontSize: 9, fontWeight: 700 }}>{sh.name}</Text>
+                        <Text style={{ fontSize: 9 }}>{sh.name}</Text>
                         <Text style={{ fontSize: 8, color: gray }}>{sh.value}</Text>
                         <Text style={{ fontSize: 8, color: gray }}>{sh.usage}</Text>
                     </View>
@@ -551,7 +547,7 @@ export default function DesignSystemPDF({ data }: Props) {
 
                 <View style={{ padding: 20, backgroundColor: '#FAFAFA', borderRadius: 6, marginBottom: 16 }}>
                     <SubLabel brandColor={bc} fontFamily={bf}>Sample Headline</SubLabel>
-                    <Text style={{ fontSize: 16, fontFamily: hf, fontWeight: 700, lineHeight: 1.4 }}>
+                    <Text style={{ fontSize: 16, fontFamily: hf, lineHeight: 1.4 }}>
                         &ldquo;{d.brandVoice.sampleHeadline}&rdquo;
                     </Text>
                 </View>
